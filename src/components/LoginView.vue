@@ -28,7 +28,7 @@ function fillDemo(role) {
       <div class="mb-11">
         <div class="h-[52px] w-[52px] rounded-[18px] bg-gradient-to-br from-[#315ad5] to-[#85a1ff] text-white shadow-[0_12px_28px_rgba(64,93,210,.28)] grid place-items-center text-2xl">⌁</div>
         <h1 class="mt-5 text-[30px] tracking-[-1.4px] font-bold text-slate-800">嘉和鼎丰</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">让每一次客户拜访，都有清晰的下一步。</p>
+        <p class="mt-2 text-sm leading-6 text-slate-500">销售日常报告</p>
       </div>
 
       <form @submit.prevent="login" class="rounded-[20px] border border-white/80 bg-white p-5 shadow-[0_18px_45px_rgba(55,74,130,.10)]">
