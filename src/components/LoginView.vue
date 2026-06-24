@@ -27,7 +27,7 @@ function fillDemo(role) {
     <div class="w-full max-w-sm">
       <div class="mb-11">
         <div class="h-[52px] w-[52px] rounded-[18px] bg-gradient-to-br from-[#315ad5] to-[#85a1ff] text-white shadow-[0_12px_28px_rgba(64,93,210,.28)] grid place-items-center text-2xl">⌁</div>
-        <h1 class="mt-5 text-[30px] tracking-[-1.4px] font-bold text-slate-800">行迹</h1>
+        <h1 class="mt-5 text-[30px] tracking-[-1.4px] font-bold text-slate-800">嘉和鼎丰</h1>
         <p class="mt-2 text-sm leading-6 text-slate-500">让每一次客户拜访，都有清晰的下一步。</p>
       </div>
 
