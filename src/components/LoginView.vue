@@ -9,64 +9,37 @@ const error = ref('')
 
 async function login() {
   error.value = ''
-  if (!username.value || !password.value) { error.value = '请填写用户名和密码'; return }
+  if (!username.value || !password.value) { error.value = '请输入用户名和密码'; return }
   loading.value = true
   const result = await loginWithUsername(username.value, password.value)
   loading.value = false
   if (result.error) error.value = result.error
 }
+
+function fillDemo(role) {
+  username.value = role === 'boss' ? 'admin1' : 'sales1'
+  password.value = '123456'
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+  <main class="min-h-screen bg-[#edf2ff] px-6 flex items-center justify-center">
     <div class="w-full max-w-sm">
-      <div class="mb-8 text-center">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-600 mb-4">
-          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </div>
-        <h1 class="text-xl font-semibold text-gray-900">销售日报</h1>
-        <p class="text-sm text-gray-500 mt-1">请登录继续</p>
+      <div class="mb-11">
+        <div class="h-[52px] w-[52px] rounded-[18px] bg-gradient-to-br from-[#315ad5] to-[#85a1ff] text-white shadow-[0_12px_28px_rgba(64,93,210,.28)] grid place-items-center text-2xl">⌁</div>
+        <h1 class="mt-5 text-[30px] tracking-[-1.4px] font-bold text-slate-800">行迹</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-500">让每一次客户拜访，都有清晰的下一步。</p>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1.5">用户名</label>
-            <input
-              v-model="username"
-              type="text"
-              placeholder="例：sales1"
-              autocomplete="username"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              @keydown.enter="login"
-            />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1.5">密码</label>
-            <input
-              v-model="password"
-              type="password"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              @keydown.enter="login"
-            />
-          </div>
+      <form @submit.prevent="login" class="rounded-[20px] border border-white/80 bg-white p-5 shadow-[0_18px_45px_rgba(55,74,130,.10)]">
+        <div class="mb-4"><label class="mb-2 block text-xs text-slate-500">用户名</label><input v-model="username" autocomplete="username" placeholder="例如：sales1" class="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-[15px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></div>
+        <div class="mb-5"><label class="mb-2 block text-xs text-slate-500">登录密码</label><input v-model="password" type="password" autocomplete="current-password" placeholder="请输入密码" class="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-[15px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></div>
+        <p v-if="error" class="mb-3 text-center text-xs text-rose-500">{{ error }}</p>
+        <button :disabled="loading" class="w-full rounded-xl bg-slate-800 py-3 text-[15px] font-semibold text-white transition active:scale-[.985] disabled:opacity-60">{{ loading ? '登录中…' : '登录' }}</button>
+      </form>
 
-          <p v-if="error" class="text-xs text-red-500 text-center">{{ error }}</p>
-
-          <button
-            @click="login"
-            :disabled="loading"
-            class="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-60"
-          >
-            {{ loading ? '登录中...' : '登录' }}
-          </button>
-        </div>
-      </div>
+      <div class="mt-5 flex items-center justify-center gap-3 text-xs text-slate-500"><span>演示账号</span><button @click="fillDemo('rep')" class="rounded-full bg-white px-3 py-1.5 text-blue-600">业务员</button><button @click="fillDemo('boss')" class="rounded-full bg-white px-3 py-1.5 text-blue-600">老板</button></div>
+      <p class="mt-10 text-center text-[11px] text-slate-400">登录即代表你同意《服务协议》和《隐私政策》</p>
     </div>
-  </div>
+  </main>
 </template>

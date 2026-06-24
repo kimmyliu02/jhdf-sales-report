@@ -1,208 +1,33 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { supabase } from '../lib/supabase.js'
-
 const props = defineProps({ user: Object, displayName: String })
-
-const loading = ref(false)
-const submitting = ref(false)
-const visits = ref([])
-const successMsg = ref('')
-const errorMsg = ref('')
-
-const form = ref({
-  visit_date: new Date().toISOString().slice(0, 10),
-  hotel_name: '',
-  contact_name: '',
-  contact_phone: '',
-  activity: '初次拜访',
-  progress: '跟进中',
-  notes: '',
-})
-
-const ACTIVITIES = ['初次拜访', '产品介绍 / 送样', '跟进报价', '签合同 / 下单', '售后维护', '其他']
-const PROGRESS = ['跟进中', '已成交', '新线索', '暂无意向']
-
-const progressStyle = {
-  '跟进中':   'bg-amber-50 text-amber-800',
-  '已成交':   'bg-green-50 text-green-800',
-  '新线索':   'bg-blue-50 text-blue-800',
-  '暂无意向': 'bg-gray-100 text-gray-600',
-}
-
-async function loadVisits() {
-  loading.value = true
-  const { data, error } = await supabase
-    .from('sr_visits')
-    .select('*')
-    .eq('rep_id', props.user.id)
-    .order('visit_date', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(50)
-  loading.value = false
-  if (!error) visits.value = data
-}
-
-async function submit() {
-  errorMsg.value = ''
-  if (!form.value.hotel_name.trim()) { errorMsg.value = '请填写客户 / 酒店名称'; return }
-  submitting.value = true
-  const { error } = await supabase.from('sr_visits').insert({
-    rep_id: props.user.id,
-    rep_name: props.displayName,
-    visit_date: form.value.visit_date,
-    hotel_name: form.value.hotel_name.trim(),
-    contact_name: form.value.contact_name.trim(),
-    contact_phone: form.value.contact_phone.trim(),
-    activity: form.value.activity,
-    progress: form.value.progress,
-    notes: form.value.notes.trim(),
-  })
-  submitting.value = false
-  if (error) { errorMsg.value = '提交失败，请重试'; return }
-  successMsg.value = '提交成功！'
-  form.value.hotel_name = ''
-  form.value.contact_name = ''
-  form.value.contact_phone = ''
-  form.value.notes = ''
-  setTimeout(() => successMsg.value = '', 2500)
-  loadVisits()
-}
-
-async function logout() {
-  await supabase.auth.signOut()
-}
-
-// Group visits by date
-function grouped() {
-  const map = {}
-  for (const v of visits.value) {
-    (map[v.visit_date] = map[v.visit_date] || []).push(v)
-  }
-  return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]))
-}
-
-function fmtDate(d) {
-  const today = new Date().toISOString().slice(0,10)
-  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10)
-  if (d === today) return '今天'
-  if (d === yesterday) return '昨天'
-  return d
-}
-
-onMounted(loadVisits)
+const activeTab = ref('home'), visits = ref([]), loading = ref(true), submitting = ref(false), message = ref('')
+const form = ref({ visit_date:new Date().toISOString().slice(0,10), hotel_name:'', contact_name:'', contact_phone:'', activity:'初次拜访', progress:'跟进中', notes:'' })
+const ACTIVITIES=['初次拜访','产品介绍 / 送样','跟进报价','签合同 / 下单','售后维护','其他']
+const PROGRESS=['跟进中','已成交','新线索','暂无意向']
+const styles={'跟进中':'bg-amber-50 text-amber-700','已成交':'bg-emerald-50 text-emerald-700','新线索':'bg-blue-50 text-blue-700','暂无意向':'bg-slate-100 text-slate-600'}
+const today = new Date().toISOString().slice(0,10)
+const todayVisits=computed(()=>visits.value.filter(v=>v.visit_date===today))
+async function load(){loading.value=true;const {data,error}=await supabase.from('sr_visits').select('*').eq('rep_id',props.user.id).order('visit_date',{ascending:false}).order('created_at',{ascending:false});loading.value=false;if(!error)visits.value=data||[]}
+async function submit(){message.value='';if(!form.value.hotel_name.trim()){message.value='请填写客户 / 酒店名称';return}submitting.value=true;const {error}=await supabase.from('sr_visits').insert({rep_id:props.user.id,rep_name:props.displayName, ...form.value,hotel_name:form.value.hotel_name.trim(),contact_name:form.value.contact_name.trim(),contact_phone:form.value.contact_phone.trim(),notes:form.value.notes.trim()});submitting.value=false;if(error){message.value='提交失败，请重试';return}message.value='✓ 已提交，老板端已同步';form.value={...form.value,hotel_name:'',contact_name:'',contact_phone:'',notes:''};activeTab.value='home';load()}
+async function logout(){await supabase.auth.signOut()}
+function fmt(d){return d===today?'今天':d}
+onMounted(load)
 </script>
-
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-          </svg>
-        </div>
-        <span class="font-semibold text-gray-900 text-sm">销售日报</span>
-      </div>
-      <button @click="logout" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">退出</button>
-    </header>
-
-    <div class="px-4 py-4 max-w-lg mx-auto space-y-4">
-
-      <!-- Form card -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-4 pt-4 pb-2 border-b border-gray-50">
-          <h2 class="text-sm font-semibold text-gray-800">新增拜访记录</h2>
-        </div>
-        <div class="px-4 py-3 space-y-3">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">拜访日期</label>
-              <input v-model="form.visit_date" type="date" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">活动类型</label>
-              <select v-model="form.activity" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option v-for="a in ACTIVITIES" :key="a">{{ a }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">客户 / 酒店名称 <span class="text-red-400">*</span></label>
-            <input v-model="form.hotel_name" type="text" placeholder="例：君悦大酒店" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">联系人</label>
-              <input v-model="form.contact_name" type="text" placeholder="姓名 + 职位" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">联系方式</label>
-              <input v-model="form.contact_phone" type="text" placeholder="电话 / 微信" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">进度</label>
-            <div class="flex gap-2 flex-wrap">
-              <button
-                v-for="p in PROGRESS"
-                :key="p"
-                @click="form.progress = p"
-                :class="['px-3 py-1.5 rounded-lg text-xs font-medium border transition-all', form.progress === p ? progressStyle[p] + ' border-transparent' : 'bg-white border-gray-200 text-gray-500']"
-              >{{ p }}</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">备注</label>
-            <textarea v-model="form.notes" rows="2" placeholder="客户需求、下次跟进计划等..." class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-          </div>
-
-          <p v-if="errorMsg" class="text-xs text-red-500">{{ errorMsg }}</p>
-
-          <button
-            @click="submit"
-            :disabled="submitting"
-            class="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-60"
-          >
-            {{ submitting ? '提交中...' : '提交记录' }}
-          </button>
-
-          <div v-if="successMsg" class="text-center text-xs text-green-600 font-medium">✓ {{ successMsg }}</div>
-        </div>
-      </div>
-
-      <!-- History -->
-      <div>
-        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">我的记录</h2>
-
-        <div v-if="loading" class="text-center py-8 text-sm text-gray-400">加载中...</div>
-
-        <template v-else-if="grouped().length">
-          <div v-for="[date, items] in grouped()" :key="date" class="mb-3">
-            <p class="text-xs text-gray-400 mb-1.5 px-1">{{ fmtDate(date) }} · {{ date }}</p>
-            <div class="space-y-2">
-              <div v-for="v in items" :key="v.id" class="bg-white rounded-2xl border border-gray-100 px-4 py-3">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <p class="text-sm font-semibold text-gray-900 leading-snug">{{ v.hotel_name }}</p>
-                  <span :class="['shrink-0 text-xs px-2 py-0.5 rounded-full font-medium', progressStyle[v.progress]]">{{ v.progress }}</span>
-                </div>
-                <p class="text-xs text-gray-500 mb-1">{{ v.activity }}</p>
-                <p v-if="v.contact_name" class="text-xs text-gray-600">
-                  {{ v.contact_name }}<span v-if="v.contact_phone" class="text-gray-400"> · {{ v.contact_phone }}</span>
-                </p>
-                <p v-if="v.notes" class="text-xs text-gray-400 mt-1 italic">{{ v.notes }}</p>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <div v-else class="text-center py-8 text-sm text-gray-400">暂无记录，填写第一条拜访吧</div>
-      </div>
-    </div>
+ <main class="min-h-screen bg-[#f6f7f9] pb-24">
+  <header class="mx-auto flex max-w-lg items-center justify-between px-5 pt-8 pb-5"><div><p class="text-xs text-slate-500">{{ fmt(today) }} · 我的工作台</p><h1 class="mt-1 text-[23px] font-bold tracking-[-.7px] text-slate-800">你好，{{ displayName }}</h1></div><button @click="logout" class="grid h-9 w-9 place-items-center rounded-full bg-[#e7edff] text-xs font-semibold text-[#4664c5]">退</button></header>
+  <div class="mx-auto max-w-lg px-5">
+   <section v-if="activeTab==='home'" class="space-y-5">
+    <div class="relative overflow-hidden rounded-[19px] bg-gradient-to-br from-[#345bd6] to-[#8099f8] p-5 text-white shadow-[0_10px_25px_rgba(72,102,215,.22)]"><div class="absolute -right-14 -top-14 h-36 w-36 rounded-full border-[22px] border-white/10"></div><p class="text-[13px] text-blue-100">我今天的拜访</p><p class="mt-1 text-[40px] font-bold tracking-[-2px]">{{ todayVisits.length }} <span class="text-sm font-medium tracking-normal">家客户</span></p><p class="text-xs text-blue-100">记录一次，让下一步更清楚。</p></div>
+    <div class="grid grid-cols-3 gap-2"><div class="rounded-xl border border-slate-100 bg-white p-3"><b class="text-xl">{{ todayVisits.length }}</b><span class="mt-1 block text-[11px] text-slate-500">已提交</span></div><div class="rounded-xl border border-slate-100 bg-white p-3"><b class="text-xl text-emerald-600">{{ todayVisits.filter(v=>v.progress==='已成交').length }}</b><span class="mt-1 block text-[11px] text-slate-500">已成交</span></div><div class="rounded-xl border border-slate-100 bg-white p-3"><b class="text-xl text-amber-600">{{ todayVisits.filter(v=>v.progress==='跟进中').length }}</b><span class="mt-1 block text-[11px] text-slate-500">待跟进</span></div></div>
+    <div><div class="mb-2 flex items-center justify-between"><h2 class="text-[16px] font-bold">今天的记录</h2><button @click="activeTab='history'" class="text-xs font-semibold text-blue-600">查看全部</button></div><div v-if="loading" class="py-10 text-center text-sm text-slate-400">加载中…</div><div v-else-if="todayVisits.length" class="space-y-2"><article v-for="v in todayVisits" :key="v.id" class="rounded-[14px] border border-slate-100 bg-white p-4"><div class="flex items-start justify-between gap-2"><b class="text-sm text-slate-800">{{ v.hotel_name }}</b><span :class="['rounded-md px-2 py-1 text-[11px] font-semibold',styles[v.progress]]">{{ v.progress }}</span></div><p class="mt-1 text-xs text-slate-500">{{ v.activity }}<span v-if="v.contact_name"> · {{ v.contact_name }}</span></p><p v-if="v.notes" class="mt-2 border-t border-slate-100 pt-2 text-xs leading-5 text-slate-500">{{ v.notes }}</p></article></div><div v-else class="rounded-[14px] border border-dashed border-slate-300 bg-white py-9 text-center text-sm text-slate-400">还没有拜访记录<br><button @click="activeTab='add'" class="mt-2 text-xs font-semibold text-blue-600">去填写第一条</button></div></div>
+   </section>
+   <section v-else-if="activeTab==='add'"><div class="mb-4"><h2 class="text-xl font-bold">提交拜访</h2><p class="mt-1 text-xs text-slate-500">填写后，老板可实时查看</p></div><div class="rounded-xl bg-[#edf2ff] p-3 text-xs leading-5 text-[#4b5d86]">⌖ <b>已获取当前位置</b><br><span class="ml-4">请在正式版接入手机定位签到</span></div><form @submit.prevent="submit" class="mt-3 space-y-3"><div class="rounded-[15px] border border-slate-100 bg-white p-4"><h3 class="mb-4 text-sm font-bold">拜访信息</h3><label class="label">拜访日期</label><input v-model="form.visit_date" type="date" class="input mb-3"><label class="label">客户 / 酒店名称 <span class="text-rose-500">*</span></label><input v-model="form.hotel_name" placeholder="例如：上海静安瑞吉酒店" class="input mb-3"><label class="label">本次工作</label><select v-model="form.activity" class="input mb-3"><option v-for="x in ACTIVITIES" :key="x">{{x}}</option></select><label class="label">进度 / 结果</label><div class="flex flex-wrap gap-2"><button v-for="x in PROGRESS" :key="x" type="button" @click="form.progress=x" :class="['rounded-lg border px-3 py-2 text-xs',form.progress===x?styles[x]+' border-transparent':'border-slate-200 bg-white text-slate-500']">{{x}}</button></div></div><div class="rounded-[15px] border border-slate-100 bg-white p-4"><h3 class="mb-4 text-sm font-bold">客户信息</h3><label class="label">联系人（姓名 + 职位）</label><input v-model="form.contact_name" placeholder="例如：王经理（采购部）" class="input mb-3"><label class="label">联系方式</label><input v-model="form.contact_phone" placeholder="手机 / 微信" class="input mb-3"><label class="label">拜访记录与下一步</label><textarea v-model="form.notes" placeholder="客户需求、现场情况、下次计划…" class="input h-20 resize-none"></textarea></div><p v-if="message" :class="['text-center text-xs',message.startsWith('✓')?'text-emerald-600':'text-rose-500']">{{message}}</p><button :disabled="submitting" class="w-full rounded-xl bg-slate-800 py-3 text-sm font-semibold text-white disabled:opacity-60">{{submitting?'提交中…':'提交拜访记录'}}</button></form></section>
+   <section v-else><div class="mb-4 flex items-center justify-between"><div><h2 class="text-xl font-bold">我的日报</h2><p class="mt-1 text-xs text-slate-500">仅显示你的拜访记录</p></div><button @click="load" class="text-xs font-semibold text-blue-600">刷新</button></div><div v-if="loading" class="py-10 text-center text-sm text-slate-400">加载中…</div><div v-else class="space-y-2"><article v-for="v in visits" :key="v.id" class="rounded-[14px] border border-slate-100 bg-white p-4"><div class="flex items-start justify-between gap-2"><b class="text-sm">{{v.hotel_name}}</b><span :class="['rounded-md px-2 py-1 text-[11px]',styles[v.progress]]">{{v.progress}}</span></div><p class="mt-1 text-xs text-slate-500">{{v.visit_date}} · {{v.activity}}</p><p v-if="v.contact_name" class="mt-2 text-xs text-slate-600">{{v.contact_name}}<span v-if="v.contact_phone" class="text-slate-400"> · {{v.contact_phone}}</span></p><p v-if="v.notes" class="mt-1 text-xs text-slate-400">{{v.notes}}</p></article></div></section>
   </div>
+  <nav class="fixed bottom-0 left-1/2 flex w-full max-w-lg -translate-x-1/2 justify-around border-t border-slate-200 bg-white/95 px-5 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 backdrop-blur"><button v-for="x in [{id:'home',icon:'⌂',label:'首页'},{id:'history',icon:'▤',label:'日报'},{id:'add',icon:'⊕',label:'填报'}]" :key="x.id" @click="activeTab=x.id" :class="['w-16 text-[10px]',activeTab===x.id?'font-semibold text-blue-600':'text-slate-400']"><b class="block text-xl font-normal leading-6">{{x.icon}}</b>{{x.label}}</button></nav>
+ </main>
 </template>
+<style scoped>.label{display:block;margin-bottom:6px;font-size:12px;color:#677287}.input{width:100%;border:1px solid #dfe4ec;border-radius:10px;background:#fff;padding:10px 11px;font-size:14px;color:#1c2637;outline:none}.input:focus{border-color:#5271e9;box-shadow:0 0 0 2px #e9eeff}</style>

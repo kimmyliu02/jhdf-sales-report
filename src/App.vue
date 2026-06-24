@@ -9,7 +9,9 @@ const session = ref(null)
 const loading = ref(true)
 
 function isBoss(user) {
-  return BOSS_EMAILS.includes(user?.email)
+  // app_metadata is the production source of truth; BOSS_EMAILS keeps the
+  // supplied demo accounts working until roles are added in Supabase.
+  return user?.app_metadata?.role === 'boss' || BOSS_EMAILS.includes(user?.email)
 }
 
 function displayName(user) {
