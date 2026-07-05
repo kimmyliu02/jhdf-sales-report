@@ -23,9 +23,9 @@ export default defineConfig({
       },
 
       manifest: {
-        name: 'Project',
-        short_name: 'project',
-        description: 'INFO 4340/5440: Project',
+        name: '嘉和鼎丰销售汇报',
+        short_name: '销售日常汇报',
+        description: '嘉和鼎丰销售日常访问汇报app',
         theme_color: '#ffffff',
         display: 'standalone',
       },

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { loginWithUsername } from '../lib/supabase.js'
+import logoUrl from '../assets/logo.svg'
 
 const username = ref('')
 const password = ref('')
@@ -21,9 +22,9 @@ async function login() {
   <main class="min-h-screen bg-[#edf2ff] px-6 flex items-center justify-center">
     <div class="w-full max-w-sm">
       <div class="mb-11">
-        <div class="h-[52px] w-[52px] rounded-[18px] bg-gradient-to-br from-[#315ad5] to-[#85a1ff] text-white shadow-[0_12px_28px_rgba(64,93,210,.28)] grid place-items-center text-2xl">⌁</div>
+        <div class="h-[64px] w-[64px] rounded-[18px] bg-white p-2 shadow-[0_12px_28px_rgba(64,93,210,.18)] grid place-items-center"><img :src="logoUrl" alt="嘉和鼎丰" class="h-full w-full object-contain" /></div>
         <h1 class="mt-5 text-[30px] tracking-[-1.4px] font-bold text-slate-800">嘉和鼎丰</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">销售日常报告</p>
+        <p class="mt-2 text-sm leading-6 text-slate-500">销售汇报</p>
       </div>
 
       <form @submit.prevent="login" class="rounded-[20px] border border-white/80 bg-white p-5 shadow-[0_18px_45px_rgba(55,74,130,.10)]">
