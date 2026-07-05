@@ -14,9 +14,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // All accounts — username → fake email mapping
 export const USERS = {
-  sales1: { email: 'sales1@jhdf.internal', display: 'Sales 1', role: 'rep' },
+  wq: { email: 'sales1@jhdf.internal', display: '王晴', role: 'rep' },
   sales2: { email: 'sales2@jhdf.internal', display: 'Sales 2', role: 'rep' },
-  admin1: { email: 'admin1@jhdf.internal', display: 'Admin 1', role: 'boss' },
+  lq: { email: 'admin1@jhdf.internal', display: '刘强', role: 'boss' },
   admin2: { email: 'admin2@jhdf.internal', display: 'Admin 2', role: 'boss' },
 }
 
