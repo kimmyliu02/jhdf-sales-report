@@ -15,11 +15,6 @@ async function login() {
   loading.value = false
   if (result.error) error.value = result.error
 }
-
-function fillDemo(role) {
-  username.value = role === 'boss' ? 'admin1' : 'sales1'
-  password.value = '123456'
-}
 </script>
 
 <template>
@@ -38,7 +33,6 @@ function fillDemo(role) {
         <button :disabled="loading" class="w-full rounded-xl bg-slate-800 py-3 text-[15px] font-semibold text-white transition active:scale-[.985] disabled:opacity-60">{{ loading ? '登录中…' : '登录' }}</button>
       </form>
 
-      <div class="mt-5 flex items-center justify-center gap-3 text-xs text-slate-500"><span>演示账号</span><button @click="fillDemo('rep')" class="rounded-full bg-white px-3 py-1.5 text-blue-600">业务员</button><button @click="fillDemo('boss')" class="rounded-full bg-white px-3 py-1.5 text-blue-600">老板</button></div>
       <p class="mt-10 text-center text-[11px] text-slate-400">登录即代表你同意《服务协议》和《隐私政策》</p>
     </div>
   </main>
