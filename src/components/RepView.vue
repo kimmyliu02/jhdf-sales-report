@@ -10,6 +10,7 @@ const styles={'跟进中':'bg-amber-50 text-amber-700','已成交':'bg-emerald-5
 const today = new Date().toISOString().slice(0,10)
 const todayVisits=computed(()=>visits.value.filter(v=>v.visit_date===today))
 const feedbackVisits=computed(()=>visits.value.filter(v=>v.boss_feedback))
+const hasUnreadFeedback=computed(()=>visits.value.some(v=>v.boss_feedback && !v.feedback_seen))
 async function load(){loading.value=true;const {data,error}=await supabase.from('sr_visits').select('*').eq('rep_id',props.user.id).order('visit_date',{ascending:false}).order('created_at',{ascending:false});loading.value=false;if(!error)visits.value=data||[]}
 async function submit(){
   message.value=''
@@ -35,6 +36,18 @@ async function submit(){
 }
 async function logout(){await supabase.auth.signOut()}
 function fmt(d){return d===today?'今天':d}
+
+async function markFeedbackSeen(){
+  const unseen=visits.value.filter(v=>v.boss_feedback && !v.feedback_seen)
+  if(!unseen.length) return
+  const {error}=await supabase.from('sr_visits').update({feedback_seen:true}).in('id',unseen.map(v=>v.id))
+  if(!error) unseen.forEach(v=>v.feedback_seen=true)
+}
+function selectTab(id){
+  activeTab.value=id
+  if(id==='feedback') markFeedbackSeen()
+}
+
 onMounted(load)
 </script>
 
@@ -239,14 +252,14 @@ onMounted(load)
           { id: 'home', icon: '⌂', label: '首页' },
           { id: 'history', icon: '▤', label: '日报' },
           { id: 'add', icon: '⊕', label: '填报' },
-          { id: 'feedback', icon: '💬', label: '反馈' }
+          { id: 'feedback', icon: '💬\uFE0E', label: '反馈' }
         ]"
         :key="x.id"
-        @click="activeTab = x.id"
+        @click="selectTab(x.id)"
         :class="['relative w-16 text-[10px]', activeTab === x.id ? 'font-semibold text-blue-600' : 'text-slate-400']"
       >
         <b class="block text-xl font-normal leading-6">{{ x.icon }}</b>{{ x.label }}
-        <span v-if="x.id === 'feedback' && feedbackVisits.length" class="absolute right-3 top-0 h-2 w-2 rounded-full bg-rose-500"></span>
+        <span v-if="x.id === 'feedback' && hasUnreadFeedback" class="absolute right-3 top-0 h-2 w-2 rounded-full bg-rose-500"></span>
       </button>
     </nav>
   </main>

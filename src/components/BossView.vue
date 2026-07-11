@@ -25,9 +25,9 @@ async function saveFeedback(v){
   savingId.value=v.id
   const text=(feedbackText.value[v.id]||'').trim()
   const nowIso=new Date().toISOString()
-  const {error}=await supabase.from('sr_visits').update({boss_feedback:text,boss_feedback_at:nowIso}).eq('id',v.id)
+  const {error}=await supabase.from('sr_visits').update({boss_feedback:text,boss_feedback_at:nowIso,feedback_seen:false}).eq('id',v.id)
   savingId.value=null
-  if(!error){v.boss_feedback=text;v.boss_feedback_at=nowIso}
+  if(!error){v.boss_feedback=text;v.boss_feedback_at=nowIso;v.feedback_seen=false}
 }
 onMounted(load)
 </script>
