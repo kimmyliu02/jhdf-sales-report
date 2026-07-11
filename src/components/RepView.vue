@@ -97,7 +97,7 @@ onMounted(load)
                 <b class="text-slate-600">后续进展：</b>{{ v.follow_up }}
               </p>
               <p v-if="v.boss_feedback" class="mt-2 rounded-lg bg-[#eef2ff] p-2 text-xs leading-5 text-[#345bd6]">
-                <b>老板反馈：</b>{{ v.boss_feedback }}
+                <b>公司意见：</b>{{ v.boss_feedback }}
               </p>
             </article>
           </div>
@@ -199,7 +199,7 @@ onMounted(load)
               <b class="text-slate-500">后续进展：</b>{{ v.follow_up }}
             </p>
             <p v-if="v.boss_feedback" class="mt-2 rounded-lg bg-[#eef2ff] p-2 text-xs leading-5 text-[#345bd6]">
-              <b>老板反馈：</b>{{ v.boss_feedback }}
+              <b>公司意见：</b>{{ v.boss_feedback }}
             </p>
           </article>
         </div>

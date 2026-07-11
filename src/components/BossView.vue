@@ -142,7 +142,7 @@ onMounted(load)
               </div>
 
               <div class="mt-3 border-t border-slate-100 pt-3" @click.stop>
-                <label class="mb-1 block text-[11px] font-semibold text-slate-600">老板反馈</label>
+                <label class="mb-1 block text-[11px] font-semibold text-slate-600">公司意见</label>
                 <textarea
                   v-model="feedbackText[v.id]"
                   placeholder="给业务员留言，例如：不用再打电话了…"
