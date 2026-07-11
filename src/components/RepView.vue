@@ -9,6 +9,7 @@ const PROGRESS=['跟进中','已成交','暂无意向','已流失','长期观察
 const styles={'跟进中':'bg-amber-50 text-amber-700','已成交':'bg-emerald-50 text-emerald-700','暂无意向':'bg-slate-100 text-slate-600','已流失':'bg-rose-50 text-rose-600','长期观察':'bg-indigo-50 text-indigo-600'}
 const today = new Date().toISOString().slice(0,10)
 const todayVisits=computed(()=>visits.value.filter(v=>v.visit_date===today))
+const feedbackVisits=computed(()=>visits.value.filter(v=>v.boss_feedback))
 async function load(){loading.value=true;const {data,error}=await supabase.from('sr_visits').select('*').eq('rep_id',props.user.id).order('visit_date',{ascending:false}).order('created_at',{ascending:false});loading.value=false;if(!error)visits.value=data||[]}
 async function submit(){
   message.value=''
@@ -168,7 +169,7 @@ onMounted(load)
         </form>
       </section>
 
-      <section v-else>
+      <section v-else-if="activeTab === 'history'">
         <div class="mb-4 flex items-center justify-between">
           <div>
             <h2 class="text-xl font-bold">所有日报</h2>
@@ -204,16 +205,48 @@ onMounted(load)
           </article>
         </div>
       </section>
+
+      <section v-else-if="activeTab === 'feedback'">
+        <div class="mb-4">
+          <h2 class="text-xl font-bold">公司意见</h2>
+          <p class="mt-1 text-xs text-slate-500">老板给你的拜访留言</p>
+        </div>
+
+        <div v-if="loading" class="py-10 text-center text-sm text-slate-400">加载中…</div>
+
+        <div v-else-if="feedbackVisits.length" class="space-y-2">
+          <article v-for="v in feedbackVisits" :key="v.id" class="rounded-[14px] border border-slate-100 bg-white p-4">
+            <div class="flex items-start justify-between gap-2">
+              <b class="text-sm">{{ v.hotel_name }}</b>
+              <span :class="['rounded-md px-2 py-1 text-[11px]', styles[v.progress]]">{{ v.progress }}</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">{{ v.visit_date }} · {{ v.activity }}</p>
+            <p class="mt-2 rounded-lg bg-[#eef2ff] p-2 text-xs leading-5 text-[#345bd6]">
+              <b>公司意见：</b>{{ v.boss_feedback }}
+            </p>
+          </article>
+        </div>
+
+        <div v-else class="rounded-[14px] border border-dashed border-slate-300 bg-white py-10 text-center text-sm text-slate-400">
+          暂时还没有收到公司意见
+        </div>
+      </section>
     </div>
 
     <nav class="fixed bottom-0 left-1/2 flex w-full max-w-lg -translate-x-1/2 justify-around border-t border-slate-200 bg-white/95 px-5 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
       <button
-        v-for="x in [{ id: 'home', icon: '⌂', label: '首页' }, { id: 'history', icon: '▤', label: '日报' }, { id: 'add', icon: '⊕', label: '填报' }]"
+        v-for="x in [
+          { id: 'home', icon: '⌂', label: '首页' },
+          { id: 'history', icon: '▤', label: '日报' },
+          { id: 'add', icon: '⊕', label: '填报' },
+          { id: 'feedback', icon: '💬', label: '反馈' }
+        ]"
         :key="x.id"
         @click="activeTab = x.id"
-        :class="['w-16 text-[10px]', activeTab === x.id ? 'font-semibold text-blue-600' : 'text-slate-400']"
+        :class="['relative w-16 text-[10px]', activeTab === x.id ? 'font-semibold text-blue-600' : 'text-slate-400']"
       >
         <b class="block text-xl font-normal leading-6">{{ x.icon }}</b>{{ x.label }}
+        <span v-if="x.id === 'feedback' && feedbackVisits.length" class="absolute right-3 top-0 h-2 w-2 rounded-full bg-rose-500"></span>
       </button>
     </nav>
   </main>
