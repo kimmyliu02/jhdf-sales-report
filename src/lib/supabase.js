@@ -25,15 +25,17 @@ export const BOSS_EMAILS = ['admin1@jhdf.internal', 'admin2@jhdf.internal']
 export async function loginWithUsername(username, password) {
   const user = USERS[username.trim().toLowerCase()]
   if (!user) return { error: '用户名不存在' }
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password,
-  })
-  if (error) {
+
+  for (let i = 0; i < 3; i++) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password,
+    })
+    if (!error) return { data }
     if (error.status === 400 || /invalid login credentials/i.test(error.message)) {
       return { error: '密码错误，请重试' }
     }
-    return { error: '网络异常或服务暂时不可用，请稍后重试' }
+    await new Promise(r => setTimeout(r, 800))
   }
-  return { data }
+  return { error: '网络异常或服务暂时不可用，请稍后重试' }
 }
